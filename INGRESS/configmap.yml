@@ -1,0 +1,8 @@
+# backend-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  NODE_ENV: production
+  LOG_LEVEL: debug
