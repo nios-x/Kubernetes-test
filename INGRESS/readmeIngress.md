@@ -36,6 +36,7 @@
     kind load docker-image backend --name soumyacluster
     kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.9.5/deploy/static/provider/kind/deploy.yaml
 ## Wait 
+    kubectl label node <your-node-name> ingress-ready=true
     kubectl wait --namespace ingress-nginx --for=condition=Ready pod --selector=app.kubernetes.io/component=controller --timeout=90s
 
 

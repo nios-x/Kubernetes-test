@@ -1,0 +1,15 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: soumyacluster
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 80   # for HTTP
+        hostPort: 80
+      - containerPort: 443  # for HTTPS (optional)
+        hostPort: 443
+      - containerPort: 30007  # for HTTPS (optional)
+        hostPort: 30007
+  - role: worker
+  - role: worker
+

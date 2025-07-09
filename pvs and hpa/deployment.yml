@@ -23,11 +23,17 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000
+        resources:
+          requests:
+            cpu: "100m"
+          limits:
+            cpu: "500m"
+
         volumeMounts:
         - mountPath: /cache
           name: cache-volume
 
       volumes:
       - name: cache-volume
-        emptyDir:
-          sizeLimit: 2Mi
+        persistentVolumeClaim:
+          claimName: cache-pvc
