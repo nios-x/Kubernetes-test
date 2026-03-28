@@ -1,8 +1,8 @@
-📦 Kubernetes-test
+# 📦 Kubernetes-test
 
 A collection of Kubernetes manifest templates covering core concepts and deployment patterns for real-world applications. This repository serves as a hands-on reference for learning and implementing Kubernetes resources efficiently.
 
-🚀 What’s Included
+# 🚀 What’s Included
 Deployments with different service types (NodePort, ClusterIP, LoadBalancer)
 Single Pod configurations
 Ingress setup
@@ -10,7 +10,7 @@ Persistent Volumes (PV) & Persistent Volume Claims (PVC)
 Horizontal Pod Autoscaler (HPA)
 Metrics configuration
 Sample Express application deployment
-🎯 Purpose
+# 🎯 Purpose
 
 This repo is designed to:
 
