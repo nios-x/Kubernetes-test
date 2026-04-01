@@ -45,9 +45,9 @@
     ports:
         - name: http
         protocol: TCP
-        port: 80
-        targetPort: 3000
-        nodePort: 30007
+        port: 80 // take any not matter
+        targetPort: 3000  // of container
+        nodePort: 30007 // from cluster 
 
 ## Apply POD and Service
     kubectl apply -f pod.yml     
