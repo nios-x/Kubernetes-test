@@ -1,0 +1,223 @@
+Why do we need MetalLB?
+
+In cloud providers:
+
+spec:
+  type: LoadBalancer
+
+works because:
+
+AWS creates an ELB
+GCP creates a Load Balancer
+Azure creates a Load Balancer
+
+and assigns a public IP.
+
+Example:
+
+EXTERNAL-IP
+34.123.45.67
+
+But in Kind (local Docker cluster):
+
+spec:
+  type: LoadBalancer
+
+gives:
+
+EXTERNAL-IP
+<pending>
+
+because there is no cloud provider.
+
+MetalLB solves this.
+
+Step 1: Install MetalLB
+kubectl apply -f metallb-native.yaml
+
+This creates:
+
+MetalLB controller
+MetalLB speaker
+
+inside:
+
+metallb-system
+
+namespace.
+
+Check:
+
+kubectl get pods -n metallb-system
+Step 2: IPAddressPool
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: kind-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 172.18.255.1-172.18.255.250
+
+This tells MetalLB:
+
+"You may allocate LoadBalancer IPs from this range."
+
+Suppose you create:
+
+kind: Service
+spec:
+  type: LoadBalancer
+
+MetalLB may assign:
+
+172.18.255.10
+
+to that service.
+
+Another service:
+
+172.18.255.11
+
+and so on.
+
+Why this IP range?
+
+You got:
+
+docker network inspect kind
+
+Output roughly:
+
+172.18.0.0/16
+
+All Kind nodes live inside that Docker network.
+
+Example:
+
+daddy-control-plane -> 172.18.0.2
+daddy-worker        -> 172.18.0.3
+daddy-worker2       -> 172.18.0.4
+
+MetalLB must allocate IPs from the same reachable network.
+
+That's why:
+
+172.18.255.1-172.18.255.250
+
+is chosen.
+
+Step 3: L2Advertisement
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: l2
+  namespace: metallb-system
+
+This tells MetalLB:
+
+"Advertise these IPs using Layer-2 (ARP) announcements."
+
+What does that mean?
+
+Suppose MetalLB assigns:
+
+172.18.255.10
+
+to your Service.
+
+When traffic arrives for:
+
+172.18.255.10
+
+MetalLB speakers answer:
+
+Who owns 172.18.255.10?
+
+with:
+
+I do.
+
+using ARP.
+
+So traffic reaches the cluster.
+
+Complete Flow
+
+You create:
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  type: LoadBalancer
+  selector:
+    app: nginx
+  ports:
+    - port: 80
+      targetPort: 80
+
+MetalLB sees:
+
+New LoadBalancer Service
+
+and assigns:
+
+172.18.255.10
+
+Now:
+
+kubectl get svc
+
+shows:
+
+NAME    TYPE           CLUSTER-IP      EXTERNAL-IP
+nginx   LoadBalancer   10.96.123.45    172.18.255.10
+
+Traffic flow:
+
+Browser
+   |
+172.18.255.10
+   |
+MetalLB
+   |
+Service
+   |
+Pod
+Difference from NodePort
+NodePort
+localhost:30007
+        |
+     Service
+        |
+       Pods
+
+You must know the port.
+
+LoadBalancer + MetalLB
+172.18.255.10
+      |
+   Service
+      |
+     Pods
+
+Looks much closer to a real cloud environment.
+
+In your Kind cluster
+
+Since you've already mapped:
+
+81 -> 80
+444 -> 443
+30008 -> 30007
+
+you can expose applications using NodePort right now.
+
+MetalLB becomes useful when you want to practice real Kubernetes networking patterns with:
+
+spec:
+  type: LoadBalancer
+
+and see an actual EXTERNAL-IP instead of <pending>.
